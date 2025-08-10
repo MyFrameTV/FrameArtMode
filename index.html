@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frame TV Art Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            background: #f8f9ff;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            flex: 1;
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e1e5f5;
+        }
+
+        .control-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .layout-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .layout-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .layout-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .layout-btn:hover:not(.active) {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .color-option {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .color-option.selected {
+            border-color: #667eea;
+            transform: scale(1.1);
+        }
+
+        .color-option:hover {
+            transform: scale(1.05);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #667eea;
+        }
+
+        .effect-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .effect-label {
+            font-weight: 600;
+            color: #333;
+            min-width: 100px;
+        }
+
+        .slider-container {
+            flex: 1;
+            margin: 0 15px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .slider-value {
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: 600;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .dropdown {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            font-weight: 600;
+        }
+
+        .preview-area {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 30px;
+            border: 2px solid #e1e5f5;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-view {
+            background: #4facfe;
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .btn-save {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        .btn-album {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-album:hover {
+            background: #e55656;
+            transform: translateY(-2px);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Color definitions */
+        .color-white { background-color: #ffffff; border: 1px solid #ddd; }
+        .color-green { background-color: #228B22; }
+        .color-blue { background-color: #1E90FF; }
+        .color-pink { background-color: #FFB6C1; }
+        .color-gray { background-color: #808080; }
+        .color-black { background-color: #000000; }
+        .color-tan { background-color: #d2b48c; }
+        .color-beige { background-color: #f5deb3; }
+        .color-darkbrown { background-color: #654321; }
+        .color-charcoal { background-color: #36454f; }
+
+        @media (max-width: 768px) {
+            .controls-row {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .color-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Upload Area -->
+        <div class="upload-area" id="uploadArea">
+            <input type="file" id="fileInput" accept="image/*">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Click to Upload Photo or Drag & Drop</div>
+            <div class="upload-subtext">Supports JPG, PNG, GIF formats</div>
+        </div>
+
+        <!-- Controls Row -->
+        <div class="controls-row">
+            <!-- Album & Naming -->
+            <div class="control-group">
+                <div class="control-title">
+                    <span>📁</span>
+                    <span>Album & Naming</span>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label for="albumName" style="font-weight: 600; color: #333; display: block; margin-bottom: 5px;">Album Name:</label>
+                    <input type="text" id="albumName" placeholder="e.g., Landscapes, Portraits, Abstract..." 
+                           style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+                </div>
+
+                <div>
+                    <label for="customFileName" style="font-weight: 600; color: #333; display: block; margin-bottom: 5px;">Custom Name (optional):</label>
+                    <input type="text" id="customFileName" placeholder="Leave blank to use original filename"
+                           style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+                </div>
+            </div>
+
+            <!-- Frame TV Layout Style -->
+            <div class="control-group">
+                <div class="control-title">
+                    <span>🖼️</span>
+                    <span>Frame TV Layout Style</span>
+                </div>
+                
+                <div class="layout-buttons">
+                    <button class="layout-btn active" data-layout="shadow">Shadow Box</button>
+                    <button class="layout-btn" data-layout="modern">Modern</button>
+                    <button class="layout-btn" data-layout="matte">Matte</button>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <strong>Matte Color:</strong>
+                </div>
+                <div class="color-grid">
+                    <div class="color-option color-white selected" data-color="white"></div>
+                    <div class="color-option color-green" data-color="green"></div>
+                    <div class="color-option color-blue" data-color="blue"></div>
+                    <div class="color-option color-pink" data-color="pink"></div>
+                    <div class="color-option color-gray" data-color="gray"></div>
+                    <div class="color-option color-black" data-color="black"></div>
+                    <div class="color-option color-tan" data-color="tan"></div>
+                    <div class="color-option color-beige" data-color="beige"></div>
+                    <div class="color-option color-darkbrown" data-color="darkbrown"></div>
+                    <div class="color-option color-charcoal" data-color="charcoal"></div>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="optimize" checked>
+                    <label for="optimize">Optimize for Frame TV (16:9)</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="frameResize">
+                    <label for="frameResize">FrameResize - Force exact Frame TV fit</label>
+                </div>
+            </div>
+
+            <!-- Additional Effects -->
+            <div class="control-group">
+                <div class="control-title">
+                    <span>🎨</span>
+                    <span>Additional Effects</span>
+                </div>
+
+                <div class="effect-row">
+                    <span class="effect-label">Shadow:</span>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="shadowSlider" min="0" max="50" value="20">
+                    </div>
+                    <span class="slider-value" id="shadowValue">20px</span>
+                </div>
+
+                <div class="effect-row">
+                    <span class="effect-label">Background:</span>
+                    <select class="dropdown" id="backgroundSelect">
+                        <option value="solid">Solid Color</option>
+                        <option value="gradient">Gradient</option>
+                        <option value="texture">Texture</option>
+                        <option value="blur">Blur</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Area -->
+        <div class="preview-area" id="previewArea">
+            Upload a photo to see the Frame TV matting effects
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="action-btn btn-save" id="saveBtn">
+                <span>💾</span>
+                <span>Save Framed Photo</span>
+            </button>
+            <button class="action-btn btn-album" id="albumBtn">
+                <span>📁</span>
+                <span>Add to Album</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentImage = null;
+        let originalFileName = '';
+        let currentSettings = {
+            layout: 'shadow',
+            matteColor: 'white',
+            optimize: true,
+            frameResize: false,
+            shadow: 20,
+            background: 'solid'
+        };
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const previewArea = document.getElementById('previewArea');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (file.type.startsWith('image/')) {
+                originalFileName = file.name.replace(/\.[^/.]+$/, ''); // Remove extension
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    currentImage = e.target.result;
+                    updatePreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Layout button handling
+        document.querySelectorAll('.layout-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentSettings.layout = btn.dataset.layout;
+                updatePreview();
+            });
+        });
+
+        // Color selection handling
+        document.querySelectorAll('.color-option').forEach(color => {
+            color.addEventListener('click', () => {
+                document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
+                color.classList.add('selected');
+                currentSettings.matteColor = color.dataset.color;
+                updatePreview();
+            });
+        });
+
+        // Slider handling
+        const shadowSlider = document.getElementById('shadowSlider');
+        const shadowValue = document.getElementById('shadowValue');
+
+        shadowSlider.addEventListener('input', () => {
+            currentSettings.shadow = shadowSlider.value;
+            shadowValue.textContent = shadowSlider.value + 'px';
+            updatePreview();
+        });
+
+        // Background selection
+        document.getElementById('backgroundSelect').addEventListener('change', (e) => {
+            currentSettings.background = e.target.value;
+            updatePreview();
+        });
+
+        // Optimize checkbox
+        document.getElementById('optimize').addEventListener('change', (e) => {
+            currentSettings.optimize = e.target.checked;
+            updatePreview();
+        });
+
+        // FrameResize checkbox - NEW ADDITION
+        document.getElementById('frameResize').addEventListener('change', (e) => {
+            currentSettings.frameResize = e.target.checked;
+            updatePreview();
+        });
+
+        function updatePreview() {
+            if (!currentImage) return;
+
+            // Create container for the frame effect
+            const frameContainer = document.createElement('div');
+            frameContainer.style.display = 'inline-block';
+            frameContainer.style.position = 'relative';
+
+            const img = document.createElement('img');
+            img.src = currentImage;
+            img.className = 'preview-image';
+            
+            if (currentSettings.optimize) {
+                img.style.aspectRatio = '16/9';
+                img.style.objectFit = 'cover';
+                img.style.width = '400px';
+            } else {
+                img.style.maxWidth = '400px';
+                img.style.maxHeight = '300px';
+            }
+
+            // Apply layout styles
+            if (currentSettings.layout === 'shadow') {
+                img.style.filter = `drop-shadow(0 4px ${currentSettings.shadow}px rgba(0,0,0,0.4))`;
+                img.style.border = 'none';
+            } else if (currentSettings.layout === 'modern') {
+                img.style.filter = 'none';
+                img.style.border = '2px solid #333';
+                img.style.borderRadius = '0';
+            } else if (currentSettings.layout === 'matte') {
+                img.style.filter = 'none';
+                img.style.border = `20px solid ${getMatteColor(currentSettings.matteColor)}`;
+                img.style.borderRadius = '0';
+            }
+
+            frameContainer.appendChild(img);
+            previewArea.innerHTML = '';
+            previewArea.appendChild(frameContainer);
+        }
+
+        function getMatteColor(colorName) {
+            const colors = {
+                'white': '#ffffff',
+                'green': '#228B22',
+                'blue': '#1E90FF',
+                'pink': '#FFB6C1',
+                'gray': '#808080',
+                'black': '#000000',
+                'tan': '#d2b48c',
+                'beige': '#f5deb3',
+                'darkbrown': '#654321',
+                'charcoal': '#36454f'
+            };
+            return colors[colorName] || '#ffffff';
+        }
+
+        // Action button handling
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            if (currentImage) {
+                const albumName = document.getElementById('albumName').value.trim();
+                const customName = document.getElementById('customFileName').value.trim();
+                
+                // Build filename: FrameTV-Album-Name-Style.jpg
+                let fileName = 'FrameTV';
+                
+                if (albumName) {
+                    fileName += `-${albumName.replace(/[^a-zA-Z0-9]/g, '')}`;
+                }
+                
+                const finalName = customName || originalFileName || 'artwork';
+                fileName += `-${finalName.replace(/[^a-zA-Z0-9]/g, '')}-${currentSettings.layout}.jpg`;
+                
+                // Create a canvas to render the framed image
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                const img = new Image();
+                img.onload = function() {
+                    // FIXED: Frame TVs need 3840x2160 not 1920x1080
+                    if (currentSettings.optimize) {
+                        // Force exact Frame TV dimensions - 4K resolution
+                        canvas.width = 3840;
+                        canvas.height = 2160;
+                        
+                        if (currentSettings.layout === 'matte') {
+                            // Add matte border within Frame TV dimensions
+                            const borderSize = 120; // Scaled up for 4K
+                            ctx.fillStyle = getMatteColor(currentSettings.matteColor);
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            
+                            // Calculate crop area to maintain proportions
+                            const availableWidth = canvas.width - (borderSize * 2);
+                            const availableHeight = canvas.height - (borderSize * 2);
+                            const targetRatio = availableWidth / availableHeight;
+                            const imageRatio = img.width / img.height;
+                            
+                            let sourceX = 0, sourceY = 0, sourceWidth = img.width, sourceHeight = img.height;
+                            
+                            if (imageRatio > targetRatio) {
+                                // Image is too wide, crop sides
+                                sourceWidth = img.height * targetRatio;
+                                sourceX = (img.width - sourceWidth) / 2;
+                            } else {
+                                // Image is too tall, crop top/bottom
+                                sourceHeight = img.width / targetRatio;
+                                sourceY = (img.height - sourceHeight) / 2;
+                            }
+                            
+                            ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, 
+                                        borderSize, borderSize, availableWidth, availableHeight);
+                        } else {
+                            // No border, crop to fit entire Frame TV
+                            const targetRatio = canvas.width / canvas.height;
+                            const imageRatio = img.width / img.height;
+                            
+                            let sourceX = 0, sourceY = 0, sourceWidth = img.width, sourceHeight = img.height;
+                            
+                            if (imageRatio > targetRatio) {
+                                // Image is too wide, crop sides
+                                sourceWidth = img.height * targetRatio;
+                                sourceX = (img.width - sourceWidth) / 2;
+                            } else {
+                                // Image is too tall, crop top/bottom
+                                sourceHeight = img.width / targetRatio;
+                                sourceY = (img.height - sourceHeight) / 2;
+                            }
+                            
+                            ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, 
+                                        0, 0, canvas.width, canvas.height);
+                        }
+                    } else {
+                        // Original size with optional matte border
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        // Add matte border if matte style
+                        let borderSize = 0;
+                        if (currentSettings.layout === 'matte') {
+                            borderSize = Math.max(20, Math.min(width, height) * 0.05);
+                        }
+                        
+                        canvas.width = width + (borderSize * 2);
+                        canvas.height = height + (borderSize * 2);
+                        
+                        // Fill background/border
+                        if (currentSettings.layout === 'matte') {
+                            ctx.fillStyle = getMatteColor(currentSettings.matteColor);
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        } else {
+                            ctx.fillStyle = 'white';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        }
+                        
+                        // Draw the image
+                        const x = (canvas.width - width) / 2;
+                        const y = (canvas.height - height) / 2;
+                        ctx.drawImage(img, x, y, width, height);
+                    }
+                    
+                    // Create download link
+                    canvas.toBlob(function(blob) {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = fileName;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }, 'image/jpeg', 0.9);
+                };
+                img.src = currentImage;
+            }
+        });
+
+        document.getElementById('albumBtn').addEventListener('click', () => {
+            if (currentImage) {
+                alert('Artwork added to album! (This would integrate with your Frame TV album system)');
+            }
+        });
+    </script>
+</body>
+</html>
